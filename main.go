@@ -47,7 +47,7 @@ type ClipData struct {
 }
 
 func main() {
-	d := NewClipData("shapes/34021003007.geojson")
+	d := NewClipData("shapes/34021001900.geojson")
 	Clip(d)
 }
 
