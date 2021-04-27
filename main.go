@@ -83,7 +83,6 @@ func (c Clipper) ReadFeature(r io.Reader) (*geojson.Feature, error) {
 // Mask ...
 type Mask struct {
 	Feature    *geojson.Feature
-	Viewport   geoviewport.VP
 	W, H       float64
 	Bounds     []float64
 	Dimensions []float64
@@ -112,8 +111,8 @@ func (c Clipper) NewMask(feature *geojson.Feature) Mask {
 
 	dimensions := []float64{w, h}
 
-	viewport := geoviewport.Viewport(bounds, dimensions, 0, 0, tileSize, true)
-	viewportBounds := geoviewport.Bounds(viewport.Center, viewport.Zoom, dimensions, tileSize)
+	viewportCenter, viewportZoom := geoviewport.Viewport(bounds, dimensions, 0, 0, tileSize, true)
+	viewportBounds := geoviewport.Bounds(viewportCenter, viewportZoom, dimensions, tileSize)
 
 	return Mask{
 		Feature: feature,
