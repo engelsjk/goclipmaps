@@ -1,6 +1,6 @@
-# mapclipsgo
+# goclipmaps
 
-```mapclipsgo``` is an experiment in clipping [Mapbox Static Map](https://www.mapbox.com/static-maps) images to GeoJSON features using pure Go. 
+```goclipmaps``` is an experiment in clipping [Mapbox Static Map](https://www.mapbox.com/static-maps) images to GeoJSON features using pure Go. 
 
 Inspired by the Twitter bot [@everytract](https://twitter.com/everytract/status/1382397269429907457) and the Glitch app [Ever Given Ever Ywhere](https://evergiven-everywhere.glitch.me/).
 
