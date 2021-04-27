@@ -20,14 +20,10 @@ github.com/docker/go-connections v0.4.0/go.mod h1:Gbd7IOopHjR8Iph03tsViu4nIes5Xh
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/engelsjk/geojson2svg v0.0.0-20210415054648-c8f3ea93063a h1:EBbH202CndE9LerJhP8QCGzO3d3yOaNs/TMvijPmMNg=
 github.com/engelsjk/geojson2svg v0.0.0-20210415054648-c8f3ea93063a/go.mod h1:9vMLLPwdRrz0ADd1jxKgUHD3/egb5viG3zzEcIvIjMA=
-github.com/engelsjk/geoviewport v0.0.0-20210415045148-209f97941c77 h1:azZFN3y0l+5B7WOfCiHU+j1gEnofOyVuv64DQo07Hbw=
-github.com/engelsjk/geoviewport v0.0.0-20210415045148-209f97941c77/go.mod h1:4Gx9tmp9VS/VaX1Wnbigm0FiN0x8EQaOhvAI9DpMFSA=
 github.com/engelsjk/geoviewport v0.0.0-20210427024417-90040a53ba89 h1:fvGAWCdR5eDGYrO5F4YrB5Lz/WAAy7KtZBtnW4fRM3A=
 github.com/engelsjk/geoviewport v0.0.0-20210427024417-90040a53ba89/go.mod h1:4Gx9tmp9VS/VaX1Wnbigm0FiN0x8EQaOhvAI9DpMFSA=
 github.com/engelsjk/sphericalmercator v0.0.0-20210414212801-2685ecc67832 h1:HMEw2/wpQqoFIIduOCP7OHGrTyYkzLKCwrAG3PgPtoE=
 github.com/engelsjk/sphericalmercator v0.0.0-20210414212801-2685ecc67832/go.mod h1:TSJtzoZ+6kWqsrDPytAIwkV2A+yW2RfiPDLgbxMbmtw=
-github.com/engelsjk/sphericalmercator v0.0.0-20210423163242-b123cd90bb3e h1:Pi4zDbcxKQoa8KQApPbtYoyV1x5fvD16e3TY4Y63LZA=
-github.com/engelsjk/sphericalmercator v0.0.0-20210423163242-b123cd90bb3e/go.mod h1:TSJtzoZ+6kWqsrDPytAIwkV2A+yW2RfiPDLgbxMbmtw=
 github.com/engelsjk/svgg v0.0.0-20210415062221-2e7b1107ec8b h1:DOeyUmUFs92M192L5M+u+UhDLXbHEo/tdPNbdbdwdbc=
 github.com/engelsjk/svgg v0.0.0-20210415062221-2e7b1107ec8b/go.mod h1:bLQPG0wIM8Ez8nOb/rTat0uRqJK/E8BSsiHipEQMFCs=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
