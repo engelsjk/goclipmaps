@@ -22,3 +22,9 @@ Next, [```engelsjk/geojson2svg```](https://github.com/engelsjk/geojson2svg) conv
 The package [```JoshVarga/svgparser```](github.com/JoshVarga/svgparser) helps to parse the XML string in order to isolate the specific SVG path string.
 
 Finally, [```engelsjk/svgg```](https://github.com/engelsjk/svgg) takes in the SVG path string, parses out each command and uses the [```fogleman/gg```](https://github.com/fogleman/gg) rendering engine to draw the paths to a canvas. ```engelsjk/svgg``` was forked from the raster rendering engine [```srwiley/oksvg```](https://github.com/srwiley/oksvg) and modified to draw SVG to ```fogleman/gg``` instead of a raster image.
+
+## Caveats
+
+* This clipping process is really only intended for GeoJSON Polygons but there are no safety checks on that at the moment.
+* The package [```engelsjk/geojson2svg```](https://github.com/engelsjk/geojson2svg) is fairly untested at this point so it's unclear how robustly it handles the full scope of GeoJSON features.
+* Similarly, the package [```engelsjk/svgg```](https://github.com/engelsjk/svgg) is very much a hack at the moment and it only works for drawing Polygons intended for clipping. Future development might include support for other feature types and allow for both clipping and general drawing.
