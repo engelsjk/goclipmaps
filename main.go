@@ -29,10 +29,6 @@ func init() {
 	}
 }
 
-const (
-	tileSize = 512
-)
-
 func main() {
 
 	shapeFilename := "shapes/34023002805.geojson"
@@ -98,6 +94,7 @@ type Mask struct {
 func (c Clipper) NewMask(feature *geojson.Feature) Mask {
 
 	dimMaxPixels := 1280.0
+	tileSize := 512
 
 	bounds := featureBounds(feature)
 
