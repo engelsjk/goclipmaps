@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"image"
 	_ "image/jpeg"
+	"io"
 	"io/ioutil"
 	"log"
 	"math"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -18,10 +19,8 @@ import (
 	"github.com/engelsjk/geoviewport"
 	"github.com/engelsjk/svgg"
 	"github.com/fogleman/gg"
-	"github.com/go-resty/resty/v2"
 	"github.com/joho/godotenv"
 	"github.com/twpayne/go-geom/encoding/geojson"
-	"github.com/twpayne/go-geom/xy"
 )
 
 func init() {
@@ -31,144 +30,204 @@ func init() {
 }
 
 const (
-	maxPx    = 1280
 	tileSize = 512
 )
 
-// ClipData ...
-type ClipData struct {
-	Feature    geojson.Feature
-	Viewport   geoviewport.VP
-	W, H       float64
-	Bounds     []float64
-	Center     []float64
-	Dimensions []float64
-	Opt2x      bool
-}
-
 func main() {
-	d := NewClipData("shapes/34023002805.geojson")
-	Clip(d)
-}
 
-// NewClipData ...
-func NewClipData(fn string) ClipData {
+	shapeFilename := "shapes/34023002805.geojson"
+	clipFilename := "clip.png"
 
-	b := LoadFile(fn)
-	var f geojson.Feature
-	err := f.UnmarshalJSON(b)
+	clipper := Clipper{}
+
+	file, err := os.Open(shapeFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	feature, err := clipper.ReadFeature(file)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	featureBounds := FeatureBounds(f)
-	center := FeatureCenter(f)
+	mask := clipper.NewMask(feature)
 
-	xDel := math.Abs(featureBounds[2] - featureBounds[0])
-	yDel := math.Abs(featureBounds[3] - featureBounds[1])
+	img, err := clipper.GetImage(mask)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = clipper.Clip(mask, img, clipFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// Clipper ...
+type Clipper struct{}
+
+// ReadFeature ...
+func (c Clipper) ReadFeature(r io.Reader) (*geojson.Feature, error) {
+
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	f := &geojson.Feature{}
+	err = f.UnmarshalJSON(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
+// Mask ...
+type Mask struct {
+	Feature    *geojson.Feature
+	Viewport   geoviewport.VP
+	W, H       float64
+	Bounds     []float64
+	Dimensions []float64
+	Opt2x      bool
+}
+
+// NewMask ...
+func (c Clipper) NewMask(feature *geojson.Feature) Mask {
+
+	dimMaxPixels := 1280.0
+
+	bounds := featureBounds(feature)
+
+	xDel := math.Abs(bounds[2] - bounds[0])
+	yDel := math.Abs(bounds[3] - bounds[1])
 
 	var w, h float64
 	if xDel > yDel {
-		w = maxPx
+		w = dimMaxPixels
 		h = w * yDel / xDel
 	} else {
-		h = maxPx
+		h = dimMaxPixels
 		w = h * xDel / yDel
 	}
 
 	dimensions := []float64{w, h}
 
-	viewport := geoviewport.Viewport(featureBounds, dimensions, 0, 0, tileSize, true)
-	bounds := geoviewport.Bounds(viewport.Center, viewport.Zoom, dimensions, tileSize)
+	viewport := geoviewport.Viewport(bounds, dimensions, 0, 0, tileSize, true)
+	viewportBounds := geoviewport.Bounds(viewport.Center, viewport.Zoom, dimensions, tileSize)
 
-	// fmt.Printf("featureBounds: %# v\n", pretty.Formatter(featureBounds))
-	// fmt.Printf("bounds: %# v\n", pretty.Formatter(bounds))
-	// fmt.Printf("center: %# v\n", pretty.Formatter(center))
-	// fmt.Printf("vp: %# v\n", pretty.Formatter(vp))
-	// fmt.Printf("dimensions: %# v\n", pretty.Formatter(dimensions))
-	// fmt.Printf("w,h: %f,%f\n", w, h)
-
-	return ClipData{
-		Feature:    f,
-		Viewport:   viewport,
-		W:          w,
-		H:          h,
-		Bounds:     bounds,
-		Center:     center,
-		Dimensions: dimensions,
-		Opt2x:      true,
+	return Mask{
+		Feature: feature,
+		W:       w,
+		H:       h,
+		Bounds:  viewportBounds,
+		Opt2x:   true,
 	}
 }
 
-// Clip ...
-func Clip(d ClipData) {
+// GetImage ...
+func (c Clipper) GetImage(mask Mask) (image.Image, error) {
 
-	/////////////////////////////////////////////////
-	// get static map image
+	urlStaticImage := "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static"
 
-	img := GetImage(d.Bounds, d.W, d.H, d.Opt2x)
+	size := fmt.Sprintf("%dx%d", int(mask.W), int(mask.H))
+	focus := fmt.Sprintf("[%f,%f,%f,%f]", mask.Bounds[0], mask.Bounds[1], mask.Bounds[2], mask.Bounds[3])
 
-	/////////////////////////////////////////////////
-	// create svg from feature
-
-	if d.Opt2x {
-		d.W = float64(2 * int(d.W))
-		d.H = float64(2 * int(d.H))
+	u, err := url.Parse(urlStaticImage)
+	if err != nil {
+		return nil, err
 	}
 
-	svg := FeatureToSVG(d.Feature, img, d.Bounds, d.W, d.H)
+	u.Path = path.Join(u.Path, focus)
+	u.Path = path.Join(u.Path, size)
+	if mask.Opt2x {
+		u.Path = fmt.Sprintf("%s@2x", u.Path)
+	}
 
-	/////////////////////////////////////////////////
-	// parse svg to get 1st path
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	queryParams := req.URL.Query()
+	queryParams.Add("access_token", os.Getenv("MAPBOX_ACCESS_TOKEN"))
+	req.URL.RawQuery = queryParams.Encode()
+
+	client := &http.Client{}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("image request error: %s", resp.Status)
+	}
+
+	img, _, err := image.Decode(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return img, nil
+}
+
+// Clip ...
+func (c Clipper) Clip(mask Mask, img image.Image, filename string) error {
+
+	// resize mask to match @2x mapbox static image pixels
+	if mask.Opt2x {
+		mask.W = float64(2 * int(mask.W))
+		mask.H = float64(2 * int(mask.H))
+	}
+
+	svg, err := featureToSVG(mask.Feature, mask.Bounds, mask.W, mask.H)
+	if err != nil {
+		return err
+	}
 
 	reader := strings.NewReader(string(svg))
 	element, err := svgparser.Parse(reader, false)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	path := element.Children[0].Attributes["d"]
 
 	/////////////////////////////////////////////////
 	// clip & save
 
-	dc := gg.NewContext(int(d.W), int(d.H))
+	dc := gg.NewContext(int(mask.W), int(mask.H))
 
-	p := svgg.NewParser(dc)
-	p.CompilePath(path)
+	err = svgg.NewParser(dc).CompilePath(path)
+	if err != nil {
+		return err
+	}
 
 	dc.Clip()
 	dc.DrawImage(img, 0, 0)
-	dc.SavePNG("clip.png")
+	return dc.SavePNG(filename)
 }
 
-// LoadFile ...
-func LoadFile(f string) []byte {
-
-	file, err := os.Open(f)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return b
+func featureBounds(f *geojson.Feature) []float64 {
+	bounds := f.Geometry.Bounds()
+	return []float64{bounds.Min(0), bounds.Min(1), bounds.Max(0), bounds.Max(1)}
 }
 
 // FeatureToSVG creates an SVG string from a GeoJSON feature
-func FeatureToSVG(f geojson.Feature, img image.Image, bounds []float64, w, h float64) string {
+func featureToSVG(f *geojson.Feature, bounds []float64, w, h float64) (string, error) {
 
 	b, err := f.MarshalJSON()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	svg := geojson2svg.NewSVG()
 	err = svg.AddFeature(string(b))
 	if err != nil {
-		log.Fatal(fmt.Errorf("unexpected error %v", err))
+		return "", err
 	}
 
 	extent := &geojson2svg.Extent{MinX: bounds[0], MinY: bounds[1], MaxX: bounds[2], MaxY: bounds[3]}
@@ -178,63 +237,5 @@ func FeatureToSVG(f geojson.Feature, img image.Image, bounds []float64, w, h flo
 		geojson2svg.WithMercator(true),
 	)
 
-	return d
-}
-
-// GetImage ...
-func GetImage(bounds []float64, w, h float64, opt2x bool) image.Image {
-
-	urlStaticImage := "https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static"
-
-	size := fmt.Sprintf("%dx%d", int(w), int(h))
-	focus := fmt.Sprintf("[%f,%f,%f,%f]", bounds[0], bounds[1], bounds[2], bounds[3])
-
-	u, err := url.Parse(urlStaticImage)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	u.Path = path.Join(u.Path, focus)
-	u.Path = path.Join(u.Path, size)
-	if opt2x {
-		u.Path = fmt.Sprintf("%s@2x", u.Path)
-	}
-
-	// fmt.Printf("url: %# v\n", pretty.Formatter(u.String()))
-
-	queryParams := map[string]string{
-		"access_token": os.Getenv("MAPBOX_ACCESS_TOKEN"),
-	}
-
-	client := resty.New()
-	resp, err := client.R().
-		SetQueryParams(queryParams).
-		Get(u.String())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if resp.StatusCode() != 200 {
-		log.Fatal(resp.Status())
-	}
-
-	img, _, err := image.Decode(bytes.NewReader(resp.Body()))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return img
-}
-
-// FeatureBounds ...
-func FeatureBounds(f geojson.Feature) []float64 {
-	bounds := f.Geometry.Bounds()
-	return []float64{bounds.Min(0), bounds.Min(1), bounds.Max(0), bounds.Max(1)}
-}
-
-// FeatureCenter ...
-func FeatureCenter(f geojson.Feature) []float64 {
-	b := f.Geometry.Bounds().Polygon()
-	centroid, _ := xy.Centroid(b)
-	return []float64{centroid.X(), centroid.Y()}
+	return d, nil
 }
