@@ -9,7 +9,7 @@ Inspired by the Twitter bot [@everytract](https://twitter.com/everytract/status/
 
 ## What
 
-A GeoJSON Polygon feature and its bounds are used to request a Mapbox Satellite image from the [Mapbox Static Image API](https://www.mapbox.com/static-maps). The image is then drawn onto a virtal SVG canvas. Next, the GeoJSON feature is converted into an SVG path string which is parsed into step-by-step path commands. Those path commands are fed into a vector rendering engine and the path is drawn onto a mask layer on the canvas above the image. Finally, the mask is clipped against the image.
+A GeoJSON feature file is input and its bounds are used to request a Mapbox Satellite image from the [Mapbox Static Image API](https://www.mapbox.com/static-maps). That image is then drawn onto a virtal SVG canvas. Next, the GeoJSON feature is converted into an SVG path string (using a spherical Mercator conversion) which is then parsed into step-by-step path commands. Those path commands are fed into a vector rendering engine and the path is drawn onto a mask layer on the canvas above the image. Finally, the mask is clipped against the original image.
 
 ## How
 
