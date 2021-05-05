@@ -143,7 +143,6 @@ func (c Clipper) GetImage(mask Mask) (image.Image, error) {
 // ClipAndSave ...
 func (c Clipper) ClipAndSave(mask Mask, img image.Image, filename string) error {
 
-	// resize mask to match @2x mapbox static image pixels
 	if mask.Opt2x {
 		mask.W = float64(2 * int(mask.W))
 		mask.H = float64(2 * int(mask.H))
@@ -186,7 +185,6 @@ func featureBounds(f *geojson.Feature) []float64 {
 	return []float64{bounds.Min(0), bounds.Min(1), bounds.Max(0), bounds.Max(1)}
 }
 
-// FeatureToSVG creates an SVG string from a GeoJSON feature
 func featureToSVG(f *geojson.Feature, bounds []float64, w, h float64) (string, error) {
 
 	b, err := f.MarshalJSON()
