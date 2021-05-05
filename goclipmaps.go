@@ -18,6 +18,7 @@ import (
 	"github.com/engelsjk/geoviewport"
 	"github.com/engelsjk/svgg"
 	"github.com/fogleman/gg"
+	"github.com/twpayne/go-geom"
 	"github.com/twpayne/go-geom/encoding/geojson"
 )
 
@@ -38,16 +39,20 @@ func (c Clipper) ReadFeature(r io.Reader) (*geojson.Feature, error) {
 		return nil, err
 	}
 
-	return f, nil
+	switch f.Geometry.(type) {
+	case *geom.Polygon, *geom.MultiPolygon:
+		return f, nil
+	default:
+		return nil, fmt.Errorf("only Polygon or MultiPolygon geometries allowed")
+	}
 }
 
 // Mask ...
 type Mask struct {
-	Feature    *geojson.Feature
-	W, H       float64
-	Bounds     []float64
-	Dimensions []float64
-	Opt2x      bool
+	Feature *geojson.Feature
+	W, H    float64
+	Bounds  []float64
+	Opt2x   bool
 }
 
 // NewMask ...
@@ -110,6 +115,9 @@ func (c Clipper) GetImage(mask Mask) (image.Image, error) {
 
 	queryParams := req.URL.Query()
 	queryParams.Add("access_token", c.MapboxAccessToken)
+	queryParams.Add("logo", "false")
+	queryParams.Add("attribution", "false")
+
 	req.URL.RawQuery = queryParams.Encode()
 
 	client := &http.Client{}
@@ -132,8 +140,8 @@ func (c Clipper) GetImage(mask Mask) (image.Image, error) {
 	return img, nil
 }
 
-// Clip ...
-func (c Clipper) Clip(mask Mask, img image.Image, filename string) error {
+// ClipAndSave ...
+func (c Clipper) ClipAndSave(mask Mask, img image.Image, filename string) error {
 
 	// resize mask to match @2x mapbox static image pixels
 	if mask.Opt2x {
@@ -151,16 +159,21 @@ func (c Clipper) Clip(mask Mask, img image.Image, filename string) error {
 	if err != nil {
 		return err
 	}
-	path := element.Children[0].Attributes["d"]
-
-	/////////////////////////////////////////////////
-	// clip & save
 
 	dc := gg.NewContext(int(mask.W), int(mask.H))
 
-	err = svgg.NewParser(dc).CompilePath(path)
-	if err != nil {
-		return err
+	for _, child := range element.Children {
+
+		if child.Name != "path" {
+			continue
+		}
+
+		path := child.Attributes["d"]
+
+		err = svgg.NewParser(dc).CompilePath(path)
+		if err != nil {
+			return err
+		}
 	}
 
 	dc.Clip()

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -20,12 +21,17 @@ func main() {
 
 func run() {
 
-	shapeFilename := "test/shapes/multipolygon.geojson"
-	clipFilename := "test/clip.png"
+	var input = flag.String("shape", "shape.geojson", "input geojson file")
+	var output = flag.String("clip", "clip.png", "output clip image")
+
+	flag.Parse()
+
+	//////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
 
 	clipper := goclipmaps.Clipper{MapboxAccessToken: os.Getenv("MAPBOX_ACCESS_TOKEN")}
 
-	file, err := os.Open(shapeFilename)
+	file, err := os.Open(*input)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -43,7 +49,7 @@ func run() {
 		log.Fatal(err)
 	}
 
-	err = clipper.Clip(mask, img, clipFilename)
+	err = clipper.ClipAndSave(mask, img, *output)
 	if err != nil {
 		log.Fatal(err)
 	}
