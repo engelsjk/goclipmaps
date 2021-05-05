@@ -4,7 +4,7 @@
 
 Inspired by the Twitter bot [@everytract](https://twitter.com/everytract/status/1382397269429907457) and the Glitch app [Ever Given Ever Ywhere](https://evergiven-everywhere.glitch.me/).
 
-![](images/clip_34021001900.png)
+![](test/images/34021001900.png)
 *Census Tract 19, Mercer County, New Jersey (34021001900)*
 
 ## What
