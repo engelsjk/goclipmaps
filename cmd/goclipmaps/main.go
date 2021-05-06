@@ -22,7 +22,7 @@ func main() {
 func run() {
 
 	var input = flag.String("shape", "shape.geojson", "input geojson file")
-	var output = flag.String("clip", "clip.png", "output clip image")
+	var output = flag.String("o", "clip.png", "output clip image")
 
 	flag.Parse()
 
