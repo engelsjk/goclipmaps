@@ -7,6 +7,18 @@ Inspired by the Twitter bot [@everytract](https://twitter.com/everytract/status/
 ![](test/images/34021001900.png)
 *Census Tract 19, Mercer County, New Jersey (34021001900)*
 
+## Install
+
+```bash
+go get github.com/engelsjk/goclipmaps/cmd/goclipmaps
+```
+
+## Example
+
+```bash
+goclipmaps -shape test/shapes/34021001900.geojson -o 34021001900.png
+```
+
 ## What
 
 A GeoJSON feature file is input and its bounds are used to request a Mapbox Satellite image from the [Mapbox Static Image API](https://www.mapbox.com/static-maps). That image is then drawn onto a virtal SVG canvas. Next, the GeoJSON feature is converted into an SVG path string (using a spherical Mercator conversion) which is then parsed into step-by-step path commands. Those path commands are fed into a vector rendering engine and the path is drawn onto a mask layer on the canvas above the image. Finally, the mask is clipped against the original image.
