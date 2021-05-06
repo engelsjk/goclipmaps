@@ -9,18 +9,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var MapboxAccessToken string
-
-func init() {
-	MapboxAccessToken = os.Getenv("MAPBOX_ACCESS_TOKEN")
-	if MapboxAccessToken != "" {
-		return
-	}
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("MAPBOX_ACCESS_TOKEN environmental variable required")
-	}
-}
-
 func main() {
 	run()
 }
@@ -35,7 +23,12 @@ func run() {
 	//////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////
 
-	clipper := goclipmaps.Clipper{MapboxAccessToken: MapboxAccessToken}
+	token := getToken()
+	if token == "" {
+		log.Fatal("envvar or .env with MAPBOX_ACCESS_TOKEN is required")
+	}
+
+	clipper := goclipmaps.Clipper{MapboxAccessToken: token}
 
 	file, err := os.Open(*input)
 	if err != nil {
@@ -59,4 +52,17 @@ func run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getToken() string {
+	if _, ok := os.LookupEnv("MAPBOX_ACCESS_TOKEN"); !ok {
+		if err := godotenv.Load(); err != nil {
+			return ""
+		}
+	}
+	token, ok := os.LookupEnv("MAPBOX_ACCESS_TOKEN")
+	if !ok {
+		return ""
+	}
+	return token
 }
