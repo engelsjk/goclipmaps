@@ -13,7 +13,7 @@ Inspired by the Twitter bot [@everytract](https://twitter.com/everytract/status/
 go get github.com/engelsjk/goclipmaps/cmd/goclipmaps
 ```
 
-## Example
+## Usage
 
 ```bash
 goclipmaps -shape test/shapes/34021001900.geojson -o 34021001900.png
