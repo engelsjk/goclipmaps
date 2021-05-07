@@ -21,7 +21,7 @@ goclipmaps -shape test/shapes/34021001900.geojson -o 34021001900.png
 
 ## What
 
-A GeoJSON feature file is used as an input. The bounds of the feature are converted into a geoviewport in order to request a Mapbox Satellite image from the [Mapbox Static Image API](https://www.mapbox.com/static-maps). That image is then drawn onto a virtal SVG canvas. Next, the GeoJSON feature is converted into SVG path strings which is then parsed into step-by-step path commands. Those path commands are fed into a vector rendering engine and the path is drawn onto a mask layer on the canvas above the image. Finally, the vector mask is clipped against the original raster image.
+A GeoJSON feature file is used as an input. The bounds of the feature are converted into a geoviewport in order to request a Mapbox Satellite image from the [Mapbox Static Image API](https://www.mapbox.com/static-maps). That image is then drawn onto a virtal SVG canvas. Next, the GeoJSON feature is converted into SVG path strings which are then parsed into step-by-step path commands. Those path commands are fed into a vector rendering engine and the path is drawn onto a mask layer on the canvas above the image. Finally, the vector mask is clipped against the original raster image.
 
 ## How
 
