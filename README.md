@@ -29,7 +29,7 @@ A GeoJSON feature file is used as an input. The bounds of the feature are conver
 
 A couple of external packages were used in this experiment. 
 
-The package [```engelsjk/geoviewport```](github.com/engelsjk/geoviewport) is used to calculate the bounds of the Mapbox Static Image API request to geographically center the image to the GeoJSON Feature. It was ported to Go from the JavaScript library [```mapbox/geo-viewport```](https://github.com/mapbox/geo-viewport). 
+The package [```engelsjk/geoviewport```](https://github.com/engelsjk/geoviewport) is used to calculate the bounds of the Mapbox Static Image API request to geographically center the image to the GeoJSON Feature. It was ported to Go from the JavaScript library [```mapbox/geo-viewport```](https://github.com/mapbox/geo-viewport). 
 
 Next, [```engelsjk/geojson2svg```](https://github.com/engelsjk/geojson2svg) converts the GeoJSON Feature into SVG as an XML string. This package was forked from [```whosonfirst/go-geojson-svg```](https://github.com/whosonfirst/go-geojson-svg) to add additional functionality for extent and mercator options. 
 
